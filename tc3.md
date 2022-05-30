@@ -7023,6 +7023,138 @@ ALTER TABLE user add INDEX idx_name_phone(name, phone);
 
 ##### 覆盖索引
 
+> 前置概念：回表
+
+
+
+在**辅助索引**里面，不管是**单列索引**，还是**联合索引**，如果SELECT的数据只用从索引中就能取到，不必再从数据区中读取（不用回表），这时候用的索引就叫**覆盖索引**。
+
+> 覆盖索引减少了IO次数，减少了数据访问量，提升了查询效率。
+
+
+
+
+
+EXPLAIN中，extra项中显示```Using index``` ,表示用了覆盖索引
+
+
+
+![image-20220530174453043](images\tc_3_54.png)
+
+
+
+
+
+![image-20220530174541983](images\tc_3_55.png)
+
+```sql
+ALTER TABLE user_innodb add INDEX `comixd_name_phone` (`name`,`phone`); -- 创建索引
+```
+
+以下语句都用到了覆盖索引：
+
+```sql
+EXPLAIN SELECT name,phone FROM user_innodb WHERE name= 'jim' AND phone = ' 13666666666'; 
+EXPLAIN SELECT name FROM user_innodb WHERE name= 'jim' AND phone = ' 13666666666'; 
+EXPLAIN SELECT phone FROM user_innodb WHERE name= 'jim' AND phone = ' 13666666666';
+```
+
+如果用 SELECT *,则没有用到覆盖索引
+
+
+
+
+
+
+
+
+
+
+
+##### 索引失效场景
+
+1. 索引列上用函数，或表达式计算（+-*/）
+
+    ```explain SELECT * FROM tc3 WHERE id+1 = 4;```
+
+2. 字符串不加引号，出现隐式转换
+
+    ```explain SELECT * FROM user WHERE name = 111;```
+
+3. like条件中前面带%，过滤的开销太大，用全文索引
+
+    > EXPLAIN select * from serial_number where serialNumber like "%4003"   --- 类型为ALL
+    >
+    > EXPLAIN select * from serial_number where serialNumber like "1040%"   --- 类型为range
+
+4. 负向查询，使用NOT LIKE不能用索引
+
+    > !=    (<>)  和 NOT IN在某些情况下可以：
+    >
+    > 比如：EXPLAIN select * from serial_number where id not in (1);   --- 类型为range
+
+
+
+
+
+> 注意跟数据库版本、数据量、数据选择度都有关系。 其实，用不用索引，最终都是优化器说了算。 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### MySQL性能优化
+
+思路：从下面的环节入手
+
+![image-20220530181535984](images\tc_3_56.png)
+
+
+
+
+
+##### 连接——配置优化
+
+> 客户端连接到服务器，可能会因为服务端连接数不够导致程序获取不到连接【Too many connections error】
+
+
+
+1. 从服务端来说，可以增加服务端的可用连接数。
+
+    * 修改配置参数增加可用连接数，修改 max_connections 的大小
+
+        ```show variables like 'max_connections'; -- 修改最大连接数，当有多个应用连接的时候```
+
+    * 或者，或者及时释放不活动的连接。交互式和非交互式的客户端的默认超时时间都是 28800 秒，8 小时，我们可以把这个值调小。
+
+        ```show global variables like 'wait_timeout'; --及时释放不活动的连接，注意不要释放连接池还 在使用的连接```
+
+2. 从客户端来说，可以减少从服务端获取的连接数，可以引入**连接池**，实现连接的重用。
+
+    > 我们可以在哪些层面使用连接池？ORM 层面（MyBatis 自带了一个连接池）；或者使用专用的连接 池工具（阿里的 Druid、Spring Boot 2.x 版本默认的连接池 Hikari、老牌的 DBCP 和 C3P0）
+
+
+
+
+
+
+
+##### 缓存——架构优化
+
+
+
+
+
 
 
 
@@ -7991,9 +8123,9 @@ TH - 3 单量： 60000+
 
 通常在并发量高的地方才加分布式锁，确保一致性
 
-事务的话，wms加的比较少，因为部分业务运行太慢了，用事务的话，会导致长时间不提交，部分业务需要用到更新后的数据（比如发了个mq, 再开事务，mq运行时需要用到新的数据，但这个时候事务还没有提交），所以说大业务量的话通常少加事务，运行得很快的代码，且数据量不大，则可以考虑加
-
-
+> 事务的话，wms加的比较少，因为部分业务运行太慢了，用事务的话，会导致长时间不提交，部分业务需要用到更新后的数据（比如发了个mq, 再开事务，mq运行时需要用到新的数据，但这个时候事务还没有提交），所以说大业务量的话通常少加事务，运行得很快的代码，且数据量不大，则可以考虑加
+>
+> --Harkin (ref: wms_jd_2022_05.md)
 
 
 
