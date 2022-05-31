@@ -290,128 +290,9 @@ public class Pizza {
 
 #### 3.使用 == 比较枚举类型
 
-
-
-
-
-
-
-
-
-
-
-
+> todo/......
 
 #### 4. 在switch语句中使用枚举类型
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Redis
-
-### Redis分布式锁
-
-> 来源： 怎样实现redis分布式锁？ - Kaito的回答 - 知乎 https://www.zhihu.com/question/300767410/answer/1931519430
->
-> 禁止转载，自己去看吧
-
-
-
-
-
-
-
-### 操作
-
-> 客户端：
->
-> * redis客户端: ```redis-cli```
->
-> * 在远程服务上执行命令：```redis-cli -h host -p port -a password```
->
-> Redis键：
->
-> * ```bash
->   redis 127.0.0.1:6379> SET runoobkey redis
->   OK
->   redis 127.0.0.1:6379> DEL runoobkey
->   (integer) 1
->   ```
->
-> * 其它key命令：
->
->   * **DEL key**  删除key
->   * **DUMP key** 系列化key
->   * **EXIST key**  检查key是否存在
->   * **EXPIRE key seconds**   为给定的key设置过期时间，以秒为单位
->   * **EXPIREAT key timestamp**    都用于为 key 设置过期时间。 不同在于 EXPIREAT 命令接受的时间参数是 UNIX 时间戳(unix timestamp)。
->   * **PEXPIRE key milliseconds**      设置 key 的过期时间以毫秒计
->   * **PEXPIREAT key milliseconds-timestamp**     设置 key 过期时间的时间戳(unix timestamp) 以毫秒计
->   * **KEYS pattern**     查找所有符合给定模式( pattern)的 key 。【比如： KEYS \*O\*】 
->   * **MOVE key db**    将当前数据库的 key 移动到给定的数据库 db 当中。
->   * **PERSIST key**    移除key的过期时间，key将持久保留
->   * **PTTL key**     返回key过期时间，毫秒
->   * **TTL key**     返回key过期时间，秒
->   * **TYPE key**    返回key所存储的值的类型
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1061,6 +942,120 @@ fun parseInt(str: String): Int? {
     // ...
 }
 ```
+
+
+
+
+
+
+
+#### Collections
+
+Map:
+
+```kotlin
+//固定的不可变的map
+val map = mapOf<String, String>("中国" to "China", "英国" to "England")
+
+//可变的map
+private val countMap = mutableMapOf<String, Int>("case" to 0, "box" to 0, "bottle" to 0)
+
+//java中的map(就底层是java)
+val map3 = Hashtable<String, Int>()
+map["111"] = 111
+
+//遍历
+map.forEach { key, value -> println(key + ":" + value) }
+
+for((key: String, value: String) in map) {
+    println(key + ":" + value)
+}
+
+//遍历key
+val keySet = map.keys
+keySet.forEach {println(it)}
+
+//遍历value
+val values = map.values
+values.forEach { println(it) }
+```
+
+
+
+
+
+
+
+List:
+
+```kotlin
+//不可变list
+val aList: List<Int> = listOf()
+val bList = List<Int> = listOf(1, 3, 5, 7)
+println(bList)
+
+//可变list
+val cList = mutableListOf(2, 4, 5)
+cList.add(0, 0) //在下标0插入
+//或者用arrayListOf
+val mList = arrayListOf("x1", "x2", "x3")
+
+//转为可变的mutableList
+val dList = bList.toMutableList()
+
+//交集
+dList.retainAll(cList)
+println(dList) //[5]
+
+//any /all
+println(cList.any{it == 2}) //true
+println(cList.all{it % 2 == 0}) //false
+
+//查看集合有没有元素,如果集合中没有元素，则返回true，否则返回false。
+println(dList.none()) //false
+
+//none函数
+println(dList.none{it == 4}) //true
+
+//返回个数
+println(dList.count())
+println(dList.count{it == 5}) //返回1
+
+//map函数
+prinln(cList.map {it + 1}) //3,5,6
+
+//mapNotNull:遍历集合每个元素，得到通过函数算子transform映射之后的值，剔除掉这些值中的null，返回一个无null元素的集合
+val eList = mutableListOf(1, null, 2, null, 3)
+println(eList.mapNotNull{it}) //1,2,3
+
+//sort() reversed()排序
+println(eList.sorted())
+println(eList.sortedDescending())
+
+
+//合并两个list,用plus()
+println(dList.plus(eList))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1812,7 +1807,7 @@ https://docs.docker.com/get-started/overview/
 >
 >    ```yml
 >    version: "3"
->                                                                                                                               
+>                                                                                                                                  
 >    services:
 >    	# 通过services来定义多个container
 >    	web: 

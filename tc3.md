@@ -1190,6 +1190,61 @@ Redis 内存淘汰机制有以下几个：
 
 
 
+### 分布式锁
+
+> 以下搬运自 tc1
+
+> 来源： 怎样实现redis分布式锁？ - Kaito的回答 - 知乎 https://www.zhihu.com/question/300767410/answer/1931519430
+>
+> 禁止转载，自己去看吧
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 操作
+
+> 客户端：
+>
+> * redis客户端: ```redis-cli```
+>
+> * 在远程服务上执行命令：```redis-cli -h host -p port -a password```
+>
+> Redis键：
+>
+> * ```bash
+>     redis 127.0.0.1:6379> SET runoobkey redis
+>     OK
+>     redis 127.0.0.1:6379> DEL runoobkey
+>     (integer) 1
+>     ```
+>
+> * 其它key命令：
+>
+>     * **DEL key**  删除key
+>     * **DUMP key** 系列化key
+>     * **EXIST key**  检查key是否存在
+>     * **EXPIRE key seconds**   为给定的key设置过期时间，以秒为单位
+>     * **EXPIREAT key timestamp**    都用于为 key 设置过期时间。 不同在于 EXPIREAT 命令接受的时间参数是 UNIX 时间戳(unix timestamp)。
+>     * **PEXPIRE key milliseconds**      设置 key 的过期时间以毫秒计
+>     * **PEXPIREAT key milliseconds-timestamp**     设置 key 过期时间的时间戳(unix timestamp) 以毫秒计
+>     * **KEYS pattern**     查找所有符合给定模式( pattern)的 key 。【比如： KEYS \*O\*】 
+>     * **MOVE key db**    将当前数据库的 key 移动到给定的数据库 db 当中。
+>     * **PERSIST key**    移除key的过期时间，key将持久保留
+>     * **PTTL key**     返回key过期时间，毫秒
+>     * **TTL key**     返回key过期时间，秒
+>     * **TYPE key**    返回key所存储的值的类型
+
 
 
 
@@ -7151,6 +7206,68 @@ EXPLAIN SELECT phone FROM user_innodb WHERE name= 'jim' AND phone = ' 1366666666
 
 ##### 缓存——架构优化
 
+1、缓存
+
+Redis --
+
+
+
+
+
+2、主从复制
+
+如果单台数据库服务满足不了访问需求，那我们可以做数据库的集群方案。
+
+> 集群问题：不同节点质检数据一致性的问题
+>
+> 这时需要用复制技术，被复制的节点称为master,复制的节点称为slave
+>
+>  
+>
+> 主从复制如何实现？
+>
+> 更新语句会记录binlog,它是一种逻辑日志，从服务器获取主服务器的binlog,然后解析里面的SQL语句，在从服务器上执行一遍，保持主从的数据一致。
+>
+> 这里面涉及三个线程：
+>
+> * 连接到master获取binlog,并且解析binlog写入中继日志，这个线程叫I/O线程。
+> * Master节点上有一个log dump线程，是用来发送binlog给slave的
+> * 从库的SQL线程，是用来读取relay log，把数据写到数据库的
+>
+> ![image-20220531182034983](images\tc_3_57.png)
+>
+>  
+>
+> 做了主从复制的方案之后，我们只把数据写入 master 节点，而读的请求可以分担到slave 节点。我 们把这种方案叫做**读写分离**。
+>
+> 读写分离可以一定程度低减轻数据库服务器的访问压力，但是需要特别注意主从数据一致性的问题。
+>
+> 我们在做了主从复制之后，如果单个 master 节点或者单张表存储的数据过大的时候，比如一张表 有上亿的数据, 单表的查询性能还是会下降，我们要进一步对单台数据库节点的数据进行拆分，这个就是**分库分表**。
+
+
+
+
+
+
+
+3、分库分表
+
+* 垂直分库，减少并发压力
+* 水平分表，解决存储瓶颈
+
+
+
+**垂直分库**
+
+垂直分库：把一个数据库按照业务拆分成不同的数据库
+
+<img src="images\tc_3_58.png" alt="image-20220531182703325" style="zoom: 67%;" />
+
+
+
+水平分表：把单张表的数据按照一定的规则分布到多个数据库
+
+![image-20220531182915141](images\tc_3_59.png)
 
 
 
@@ -7162,10 +7279,13 @@ EXPLAIN SELECT phone FROM user_innodb WHERE name= 'jim' AND phone = ' 1366666666
 
 
 
+#### 优化器
+
+> 优化器就是对我们的 SQL 语句进行分析，生成执行计划。
 
 
 
-
+##### 慢查询日志 slow query log
 
 
 
