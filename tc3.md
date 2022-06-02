@@ -2049,7 +2049,7 @@ vector<int> postOrder(TreeNode *root) {
 
 
 
-## Basics
+## Java Basics
 
 ### B
 
@@ -4081,7 +4081,7 @@ public static boolean disjoint(Collection<?> c1, Collection<?> c2) {}
 
 
 
-## JDK Core
+## Java Core
 
 ### other
 
@@ -4196,6 +4196,57 @@ lpnMap.entrySet().stream().forEach({
 
 
 
+**groupingBy分组：**
+
+```groovy
+//按某个字段分组,统计出现的次数
+//java
+Map<String, Long> countMap = sldList.stream().collect(Collectors.groupingBy(Sld::unitCode), Collectors.counting());
+//groovy
+Map<String, Integer> countMap = sldList.stream().collect(Collectors.groupingBy{it -> it.unitCode}, Collectors.counting())
+
+
+
+//按长度对字符串进行分组
+List<String> slist = List.of("a", "aa", "bc", "dddd");
+Map<Integer, List<String>> result = slist.stream().collect(groupingBy(String::length));
+//分组到自定义Map
+TreeMap<Integer, List<String>> re = slist.stream().collect(groupingBy(String::length, TreeMap::new, toList()));
+//ps. 方法如下：
+public static <T, K, D, A, M extends Map<K, D>>
+    Collector<T, ?, M> groupingBy(Function<? super T, ? extends K> classifier,
+                                  Supplier<M> mapFactory,
+                                  Collector<? super T, A, D> downstream)
+//或者这么写：
+Map<Integer, TreeSet<String>> result = slist.stream().collect(groupingBy(String::length, toCollection(TreeSet::new)));
+
+//{1=[a], 2=[aa,bc], 4=[dddd]}
+Map<Integer, String> result = slist.stream().collect(groupingBy(String::length, joining(",", "[", "]")));
+
+
+//统计平均  {1=97.0, 2=3152.0, 3=99300.0}
+//averagingInt（）------- averagingLong（）------ averagingDouble（）
+List<String> strings = List.of("a", "bb", "cc", "ddd");
+Map<Integer, Double> result = strings.stream().collect(groupingBy(String::length, averagingInt(String::hashCode)));
+
+//求和 summingInt（）--- summingDouble() ---- summingLong()
+//{1=97, 2=6304, 3=99300}
+Map<Integer, Integer> result = strings.stream().collect(groupingBy(String::length, summingInt(String::hashCode)));
+
+//reducing
+// {1=[a], 2=[b, b, c, c], 3=[d, d, d]}
+Map<Integer, List<Character>> result = strings.stream().map(toStringList()).collect(groupingBy(List::size, reducing(List.of(), (l1, l2) -> Stream.concat(l1.stream(), l2.stream()).collect(Collectors.toList()))));
+
+
+//最大最小值
+//{1=Optional[a], 2=Optional[cc], 3=Optional[ddd]}
+Map<Integer, Optional<String>> result = strings.stream().collect(groupingBy(String::length, Collectors.maxBy(Comparator.comparing(String::toUpperCase))));
+```
+
+
+
+
+
 
 
 
@@ -4245,6 +4296,22 @@ try {
     e.printStackTrace();
 }
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6534,6 +6601,14 @@ InnoDB 将用户数据存储在聚集索引中，以减少基于 主 键的常�
 
 
 
+##### 选择
+
+为不同的业务表选择不同的存储引擎，例如：查询插入操作多的业务表，用 MyISAM。临时数据用 Memory。常规的并发大更新多的表用 InnoDB。
+
+
+
+
+
 
 
 
@@ -7287,6 +7362,236 @@ Redis --
 
 ##### 慢查询日志 slow query log
 
+> https://dev.mysql.com/doc/refman/5.7/en/slow-query-log.html
+
+
+
+因为开启慢查询日志是有代价的（跟 bin log、optimizer-trace 一样），所以它默认是关闭的。
+
+```show variables like 'slow_query%';```
+
+
+
+还有一个参数，控制执行超过多长时间的SQL才记录到慢日志，默认是10秒：
+
+```show variables like '%long_query%';```
+
+
+
+可以动态修改参数（重启后失效）：
+
+```sql
+set @@global.slow_query_log=1; -- 1 开启，0 关闭，重启后失效
+set @@global.long_query_time=3; -- mysql 默认的慢查询时间是 10 秒，另开一个窗口后才会查 到最新值
+
+show variables like '%long_query%'; 
+show variables like '%slow_query%';
+```
+
+
+
+或者修改配置文件my.conf:
+
+```sql
+-- 以下配置定义了慢查询日志的开关、慢查询的时间、日志文件的存放路径。
+
+slow_query_log = ON 
+long_query_time=2 
+slow_query_log_file =/var/lib/mysql/localhost-slow.log
+```
+
+
+
+
+
+**慢日志分析**
+
+```sql
+show global status like 'slow_queries'; -- 查看有多少慢查询 
+show variables like '%slow_query%'; -- 获取慢日志目录
+```
+
+
+
+```cat /var/lib/mysql/localhost-slow.log```
+
+
+
+
+
+**mysqldumpslow**
+
+MySQL 提供了 mysqldumpslow 的工具，在 MySQL 的 bin 目录下。
+
+```mysqldumpslow --help```
+
+查询用时最多的10条慢SQL:
+
+```mysqldumpslow -s t -t 10 -g 'select' /var/lib/mysql/localhost-slow.log```
+
+
+
+> ps.别说为啥没参数解析，我没查！
+
+![image-20220601174921111](images\tc_3_60.png)
+
+
+
+
+
+
+
+##### SHOW PROFILE
+
+> https://dev.mysql.com/doc/refman/5.7/en/show-profile.html
+>
+> SHOW PROFILE 是谷歌高级架构师 Jeremy Cole 贡献给 MySQL 社区的，可以查看SQL 语句执行的 时候使用的资源，比如 CPU、IO 的消耗情况。 
+>
+> 在 SQL 中输入 help profile 可以得到详细的帮助信息
+
+
+
+
+
+查看是否开启：
+
+```sql
+select @@profiling;
+set @@profiling=1;
+```
+
+
+
+查看profile统计：
+
+```sql
+show profiles;
+```
+
+查看最后一个 SQL 的执行详细信息:
+
+```sql
+show profile;
+```
+
+根据id查询：
+
+```sql
+show profile for query 1;
+```
+
+
+
+
+
+##### 其它系统命令
+
+**show processlist 运行线程：**【这是很重要的一个命令，用于显示用户运行线程。可以根据 id 号 kill 线程】
+
+```sql
+show processlist;
+```
+
+也可以跟查表一样
+
+```sql
+select * from information_schema.processlist; -- 可以用group by / order by
+```
+
+
+
+
+
+**show status 服务器运行状态：**
+
+SHOW STATUS 用于查看 MySQL 服务器运行状态（重启后会清空）, 有 session和 global 两种作 用域，格式：参数-值。 可以用 like 带通配符过滤
+
+```sql
+SHOW GLOBAL STATUS LIKE ‘com_select’; -- 查看select 次数
+```
+
+
+
+
+
+**show engine 存储引擎运行信息**
+
+show engine 用来显示存储引擎的当前运行信息，包括事务持有的表锁、行锁信息；事务的锁等待 情况；线程信号量等待；文件 IO 请求；buffer pool 统计信息。
+
+```sql
+show engine innodb status;
+```
+
+> ps. 这结果太长了吧...
+
+
+
+如果需要将监控信息输出到错误信息 error log 中（15 秒钟一次），可以开启输出。
+
+```sql
+show variables like 'innodb_status_output%'; -- 开启输出： 
+
+SET GLOBAL innodb_status_output=ON; 
+SET GLOBAL innodb_status_output_locks=ON;
+```
+
+
+
+
+
+
+
+
+
+##### EXPLAIN 执行计划
+
+![image-20220601181741672](images\tc_3_61.png)
+
+
+
+
+
+id是查询编号，id不同时，先查id值大的，再查小的；id值相同时，从上往下查
+
+> 如果 ID 有相同也有不同，就是 ID 不同的先大后小，ID 相同的从上往下。
+
+
+
+
+
+
+
+
+
+###### select_type查询类型
+
+> 这里并没有列举全部（其它：DEPENDENT UNION、DEPENDENT SUBQUERY、MATERIALIZED、 UNCACHEABLE SUBQUERY、UNCACHEABLE UNION）。
+>
+> ps.这个大概记一下！
+
+
+
+* SIMPLE :     简单查询，不包含关联查询union
+
+* PRIMARY:     子查询SQL中的主查询，也就是最外面的那层查询。
+
+* SUBQUERY:    子查询中所有的内层查询都是SUBQUERY类型的。
+
+* DERIVED:      衍生查询，标识在得到最终结果之前会用到临时表。
+
+    ​						对于关联查询，先执行右边的table(UNION), 再执行左边的table, 类型是DERIVED
+
+* UNION:     用到了UNION查询
+
+* UNION RESULT:   主要是显示哪些表之间存在UNION查询，<union2,3> 代表id = 2和 id = 3的查询存在UNION。
+
+
+
+
+
+
+
+![image-20220601182541995](images\tc_3_62.png)
 
 
 
@@ -7298,10 +7603,253 @@ Redis --
 
 
 
+###### type连接类型
+
+在所有的连接类型中，上面的最好，越往下越差。
+
+**常用链接类型中： system > const > eq_ref > ref > range > index > all**
+
+
+
+> 这 里 并 没 有 列 举 全 部 （ 其 他 ： fulltext 、 ref_or_null 、 index_merger 、 unique_subquery、index_subquery）。 
+>
+> 以上访问类型除了 all，都能用到索引。
+>
+> ps.这个顺序也要记！
 
 
 
 
+
+**const**
+
+主键索引或者唯一索引，只能查到一条数据的SQL。
+
+> 比如where id = 1什么的
+
+
+
+
+
+**system**
+
+system是const的一种特例，只有一行满足条件，例如：只有一条数据的系统表
+
+
+
+
+
+**eq_ref**
+
+通常出现在多表的join查询，表示对于前表的每一个结果，都只能匹配到后表的一行结果。一般是唯一性索引的查询（UNIQUE 或 PRIMARY KEY）
+
+> eq_ref是除了const之外最好的访问类型
+>
+> eg:
+>
+> ```sql
+> -- 为teacher_contact创建主键索引：
+> ALTER TABLE teacher_contact ADD PRIMARY KEY(tcid);
+> 
+> -- 为teacher创建普通索引
+> ALTER TABLE teacher ADD INDEX idx_tcid(tcid);
+> 
+> -- 查询
+> SELECT t.tcid
+> from teacher t, teacher_contact tc
+> where t.tcid = tc.tcid
+> ```
+>
+> 此时执行计划 teacher_contact表时eq_ref
+>
+> ![image-20220602113005135](images\tc_3_63.png)
+
+
+
+
+
+小结：
+
+以上三种：system, const, eq_ref，都是可遇不可求的，基本很难优化到这个状态。
+
+
+
+
+
+
+
+**ref**
+
+查询用到了非唯一性索引，或者关联操作只使用了索引的最左前缀。
+
+> eg:
+>
+> 上面的例子，使用tcid上的普通索引查询：
+>
+> ```explain select * from teacher where tcid = 3;```
+>
+> 此时type为ref
+
+
+
+
+
+
+
+**range**
+
+索引范围扫描
+
+如果where后面是between and 或 < 或 > 或 >= 或 <= 或 in 这些，type类型就为 range。
+
+> eg:
+>
+> 还是上面的例子：
+>
+> ```EXPLAIN SELECT * from teacher t where t.tid < 3;```
+>
+> 此时type 为 range
+
+
+
+IN查询也是range(字段有主键索引的情况下)
+
+
+
+
+
+
+
+**index**
+
+Full Index Scan, 查询全部索引中的数据（比不走索引快）
+
+```EXPLAIN SELECT tid FROM teacher;```
+
+
+
+
+
+
+
+**ALL**
+
+Full Table Scan, 如果没有索引或者没有用到索引，type就是ALL， 代表**全表扫描**。
+
+
+
+
+
+**小结：**
+
+一般来说，需要保证查询至少达到range级别，最好能达到ref。
+
+ALL(全表扫描) 和 index(查询全部索引) 都是需要优化的。
+
+
+
+
+
+
+
+
+
+
+
+###### other
+
+**possible_key、key**
+
+可能用到的索引和实际用到的索引，如果是NULL就代表没有用到索引。
+
+possible_key 可以有一个或者多个，可能用到索引不代表一定用到索引。
+
+possible_key为空，key可能有值（比如覆盖索引）。
+
+
+
+
+
+
+
+**key_len**
+
+索引的长度（使用的字节数），跟索引字段的类型、长度有关。
+
+
+
+**rows**
+
+MySQL认为扫描多少行才能返回请求的数据，是一个预估值，一般来说行数越少越好。
+
+
+
+**filtered**
+
+这个字段表示存储引擎返回的数据在 server 层过滤后，剩下多少满足查询的记录数量的比例，它是
+一个百分比。
+
+
+
+**ref**
+
+使用哪个列或者常数和索引一起从表中筛选数据。
+
+
+
+**Extra**
+
+执行计划给出的额外信息。
+
+* using index  :   使用了覆盖索引，不需要回表
+
+* using where :  使用了 where 过滤，表示存储引擎返回的记录并不是所有的都满足查询条件，需要在 server 层进 行过滤（跟是否使用索引没有关系）
+
+* using filesort  :  不能使用索引来排序，用到了额外的排序（跟磁盘或文件没有关系）。需要优化。（复合索引的前提）
+
+    ![image-20220602153206520](images\tc_3_64.png)
+
+* using temporary :  用到了临时表。例如（以下不是全部的情况）：
+
+    1. distinct 非索引列： ```EXPLAIN select DISTINCT(tid) from teacher t;```
+    2. group by 非索引列： ```EXPLAIN select tname from teacher group by tname;```
+    3. 使用join的时候，group任意列： ```EXPLAIN select t.tid from teacher t join course c on t.tid = c.tid group by t.tid;```
+
+    需要优化，例如建立复合索引。
+
+
+
+
+
+
+
+
+
+
+
+#### 业务优化
+
+> ctrl + v 大法
+
+
+
+> 除了对于代码、SQL 语句、表定义、架构、配置优化之外，业务层面的优化也不能忽视。举两个例 子： 
+>
+> 1）在某一年的双十一，为什么会做一个充值到余额宝和余额有奖金的活动，例如充300 送 50？
+>
+> 因为使用余额或者余额宝付款是记录本地或者内部数据库，而使用银行卡付款，需要调用接口，操 作内部数据库肯定更快。
+>
+>  2）在去年的双十一，为什么在凌晨禁止查询今天之外的账单？ 
+>
+> 这是一种降级措施，用来保证当前最核心的业务。 
+>
+> 3）最近几年的双十一，为什么提前个把星期就已经有双十一当天的价格了？
+>
+>  预售分流。 
+>
+> 4）公安局的同名查询，不是实时返回结果（不是实时查询数据库），而是通过公众号推送。 
+>
+> 在应用层面同样有很多其他的方案来优化，达到尽量减轻数据库的压力的目的，比如限流，或者引入 MQ 削峰，等等等等。
 
 
 

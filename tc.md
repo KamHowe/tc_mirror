@@ -1,3 +1,5 @@
+# TC1
+
 > 整合技术知识
 >
 > 自己使用
@@ -6,13 +8,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 ## Java
 
-
-
 ### 杂货
-
-
 
 #### String#equalsIgnoreCase
 
@@ -978,6 +986,10 @@ keySet.forEach {println(it)}
 //遍历value
 val values = map.values
 values.forEach { println(it) }
+
+//getOrPut,如果没有该数值，则赋值一个默认值
+csCount.text = countMap.getOrPut("CS", { 0 }).toString()
+
 ```
 
 
@@ -1045,7 +1057,41 @@ println(dList.plus(eList))
 
 
 
+#### 使用
 
+##### when
+
+```kotlin
+var unitName = when (unit) {
+    "CS" -> "cs"
+    "EA" -> "ea"
+    "SP" -> "sp"
+    else -> ""
+}
+
+//or
+
+when(unit) {
+    "CS" -> {
+        //.....
+    }
+    else -> {
+        //......
+    }
+}
+```
+
+
+
+
+
+
+
+##### 三目表达式
+
+```kotlin
+unitNum = if (reverse) unitNum - 1 else unitNum + 1
+```
 
 
 
@@ -1807,7 +1853,7 @@ https://docs.docker.com/get-started/overview/
 >
 >    ```yml
 >    version: "3"
->                                                                                                                                  
+>                                                                                                                                     
 >    services:
 >    	# 通过services来定义多个container
 >    	web: 
@@ -2649,7 +2695,7 @@ SpringCloud 在CAP理论是选择了AP的，在Ribbon中还可以配置**重试�
 
 ### Hysrtrix
 
-
+> todo
 
 
 
