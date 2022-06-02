@@ -1592,6 +1592,8 @@ public String[] findRestaurant(String[] list1, String[] list2) {
 
 ## Data Structure
 
+> 相关内容>>>>>>>>>> tc1.md --- 算法
+
 > struct:
 >
 > https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
@@ -2051,9 +2053,9 @@ vector<int> postOrder(TreeNode *root) {
 
 ## Java Basics
 
-### B
+### Basics
 
-
+> 一些写的比较杂的基础，可以跳过Basic，下面的模块比较详细
 
 #### Cache
 
@@ -2666,11 +2668,7 @@ public native int hashCode();
 
 
 
-
-
-### B Questions
-
-##### integer值更改：
+#### integer值更改：
 
 ```java
 public static void main(String[] args) {
@@ -2701,6 +2699,26 @@ true
 
 
 **ps. java都是值传递，对象或者数组也是传递他们对应的地址过去，所以更改其内容有效，而修改他们地址的操作不会影响原来的数组。**
+
+
+
+
+
+#### Collections#disjoint
+
+```java
+public static boolean disjoint(Collection<?> c1, Collection<?> c2) {}
+```
+
+两个集合没有交集，返回true,
+
+有交集，返回false
+
+注：其中一个是空集合也返回true
+
+
+
+
 
 
 
@@ -4049,41 +4067,11 @@ try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(new F
 
 
 
-## Collections
-
-### Other
-
-#### Collections#disjoint
-
-```java
-public static boolean disjoint(Collection<?> c1, Collection<?> c2) {}
-```
-
-两个集合没有交集，返回true,
-
-有交集，返回false
-
-注：其中一个是空集合也返回true
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Java Core
-
-### other
+### 使用
 
 #### Pattern#compile()
 
@@ -4249,10 +4237,6 @@ Map<Integer, Optional<String>> result = strings.stream().collect(groupingBy(Stri
 
 
 
-
-
-
-
 #### TimeUnit
 
 TimeUnit是java.util.concurrent包下面的一个类，表示给定单元粒度的时间段
@@ -4296,22 +4280,6 @@ try {
     e.printStackTrace();
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5025,48 +4993,6 @@ graphical.target --设置为5
 ![](images\tc_3_70.png)
 
 这样设置后，下次重启时，会进入到新设置的级别中
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## JVM
-
-> tc1.md >>>>>>>>>>>>>>>>>
-
-
-
-
 
 
 
@@ -8509,6 +8435,22 @@ Git 本地数据管理，大概可以分为三个区，工作区,暂存区和版
 
 
 
+bash方案：
+
+> 1. ```git reflog``` 查看历史版本
+>
+> 2. ```git reset --hard head@{n}```      来选择回退的版本
+>
+>     或者 ```git reset --hard 版本id```    也可以
+
+
+
+
+
+
+
+
+
 
 
 #### Git cherry-pick
@@ -8805,7 +8747,7 @@ TH - 3 单量： 60000+
 
 
 
-## other
+## Other
 
 ### IDEA
 
