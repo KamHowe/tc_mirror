@@ -4813,6 +4813,107 @@ grep:过滤查找， | 表示将前面的结果交给后面的命令处理
 
 
 
+##### 压缩/解压
+
+###### zip/unzip
+
+- zip ： 压缩
+
+- unzip : 解压
+
+* zip -r ： 递归压缩，压缩目录
+* unzip -d : 指定解压文件后存放的目录【默认会解压到当前目录】
+
+
+
+```bash
+$ zip /home/hello.txt
+--- hello.txt.gz
+$ unzip /home/hello.txt.gz
+```
+
+
+
+--- 将/home下所有的文件压缩成： myhome.zip
+
+> zip -r myhome.zip /home/    [/home文件夹本身也会被压缩，加*也一样]
+
+
+
+--- 将myhome.zip 解压到/opt/tmp目录下
+
+> mkdir /opt/tmp
+>
+> unzip -d /opt/tmp /home/myhome.zip
+
+
+
+
+
+###### tar 指令
+
+tar指令是打包指令，最后打包的文件是 .tar.gz 的文件
+
+
+
+基本语法：
+
+--- tar [选项] XXX.tar.gz XXX内容
+
+
+
+选项
+
+| 选项 | 功能                      |
+| ---- | ------------------------- |
+| -c   | 产生.tar打包文件          |
+| -v   | 显示详细的信息            |
+| -f   | 指定压缩后的文件          |
+| -z   | 打包同时压缩              |
+| -x   | 解包.tar文件 [-C指定目录] |
+
+
+
+
+
+应用
+
+> 1. 压缩多个文件，将/home/pig.txt 和 /home/cat.txt 压缩成 pc.tar.gz
+>
+>     touch pig.txt
+>
+>     touch cat.txt
+>
+>     tar -zcvf pc.tar.gz /home/pig.txt /home/cat.txt    [文件中间有空格隔开！]
+>
+> 2. 将/home文件夹压缩成myhome.tar.gz
+>
+>     tar -zcvf myhome.tar.gz /home/
+>
+> 3. 将pc.tat.gz解压到当前目录
+>
+>     tar -zxvf pc.tar.gz
+>
+> 4. 将myhome.tar.gz 解压到/opt/tmp2目录下
+>
+>     mkdir /opt/tmp2
+>
+>     tar -zxvf /home/myhome.tar.gz -C /home/opt/tmp2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5008,7 +5109,246 @@ graphical.target --设置为5
 
 
 
+#### 权限
 
+查看文件的所有者：
+
+> ls -alh
+>
+> 首个用户名表示所有者
+
+
+
+修改文件所有者：
+
+chown tom apple.txt
+
+> 修改后，apple.txt所有者为tom
+
+
+
+
+
+
+
+##### 组
+
+**创建**
+
+groupadd [groupName]
+
+
+
+```bash
+$ groupadd monster
+$ useradd -g monster fox
+--- 用户fox创建后加入了monster组
+$ pass fox
+---切换到fox用户
+$ touch ok.txt
+$ ls -ahl 
+---[或用 ll]
+-rw-r--r-- fox monster 0 11月 5 12:50 ok.txt
+--- 所有者为fox,组为monster
+```
+
+
+
+修改文件所在的组：
+
+> chgrp 组名 文件名
+
+
+
+把ok.txt的组更改：
+
+chgrp root ok.txt
+
+
+
+
+
+
+
+**其它组**
+
+除文件所有者和所在组的用户外，系统的其它用户都是其他组。
+
+
+
+改变用户所在组：
+
+* usermod -g 新组名 用户名
+* usermod -d 目录名 用户名 ： 改变改用户登录的初始目录【注意：被修改的用户需要有新目录的权限！】
+
+
+
+
+
+```bash
+--- 查找组存不存在
+$ cat /etc/group | grep wudang
+
+--- 更改一个用户到这个组
+$ usermod -g wudang zwj
+
+```
+
+
+
+
+
+
+
+##### 权限
+
+ls -l 后有以下结果：
+
+-rwxrw-r-- 1 root root 1213 Feb 2 09:39 abc
+
+
+
+说明：
+
+1. 第0位确定文件的类型（d, -, l, c, b）
+    * l是链接，相当于windows的快捷方式
+    * d是目录，相当于windows的文件夹
+    * c是**字符设备**文件，鼠标，键盘【/dev 目录下有很多】
+    * b是**块设备**，比如硬盘
+2. 第1-3位确定所有者（该文件的所有者）拥有该文件的权限 --User
+3. 第4-6位确定所属组（同用户组的）拥有该文件的权限 --Group
+4. 第7-9位确定其他用户拥有该文件的权限 --Other
+
+
+
+其它说明：
+
+1. 结果上的1含义：如果是文件，代表硬链接数；如果是目录，代表子目录数
+2. root : 用户
+3. root：第二个root表示组
+4. 1213： 文件大小（字节），如果是文件夹，显示4096字节
+5.  Feb 2 09:39 ： 最后修改时间
+6. abc: 文件名
+
+
+
+
+
+
+
+**rwx权限：**
+
+对文件：
+
+* r代表可读
+* w代表可写，可以修改，但是不代表可以删除该文件，删除一个文件的前提是对该文件所在的目录有写权限，才能删除该文件
+* x代表可执行（execute）:可以被执行
+
+
+
+对目录：
+
+* r可以读取，ls查看目录内容【ps.不代表对里面的文件也一定有r的权限】
+* w代表可写，可以修改，对目录内创建+删除+重命名目录的权限
+* x代表可执行，可以进入该目录
+
+
+
+数字表达：
+
+r=4,w=2,x=1
+
+rwx = 7
+
+
+
+
+
+
+
+
+
+##### 权限操作
+
+chmod指令，可以修改文件或者目录的权限
+
+
+
+方式一：+，-，=变更权限：
+
+* chmod u=rwx,g=rx,o=x 文件/目录名
+* chmod o+w 文件/目录
+* chmod o-w 文件/目录
+
+
+
+比如：
+
+```bash
+$ chmod u=rwx,g=rx,o=x abc
+$ chmod u-x,g-x,o+w abc
+```
+
+
+
+
+
+方式二：用数字变更权限
+
+* chmod 751 /home/abc.txt
+
+
+
+
+
+
+
+
+
+**修改文件所有者**
+
+chown [新用户] [文件]
+
+chown -R [新用户] [目录]    ---将目录所有的文件递归修改所有者
+
+
+
+```bash
+$ chown tom abc.txt
+$ cd /home/test/ddd
+$ chown -R tom /home/test/ddd
+```
+
+
+
+
+
+**修改文件/目录所在组**
+
+chgrp newgroup 文件/目录 
+
+chgrp -R newgroup 文件/目录   ---将目录所有的文件递归修改所在组
+
+
+
+```bash
+$ chgrp shaolin /home/abc.txt
+$ chgrp -R shaolin /home/test
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 任务调度
 
 
 
@@ -8150,6 +8490,594 @@ class Person {
 
 
 
+## Vue
+
+> github: https://github.com/vuejs
+>
+> vue: https://cn.vuejs.org/
+>
+> vue-devtools: https://github.com/vuejs/devtools#vue-devtools
+>
+> 介绍视频：https://www.vuemastery.com/courses/intro-to-vue-3/intro-to-vue3/
+
+
+
+Vue (读音 /vjuː/，类似于 **view**) 是一套用于构建用户界面的**渐进式框架**。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。
+
+另一方面，当与[现代化的工具链](https://v3.cn.vuejs.org/guide/single-file-component.html)以及各种[支持类库](https://github.com/vuejs/awesome-vue#components--libraries)结合使用时，Vue 也完全能够为复杂的单页应用提供驱动。
+
+
+
+
+
+
+
+### 安装
+
+> https://v3.cn.vuejs.org/guide/installation.html#%E5%AE%89%E8%A3%85
+>
+> ps.windows下可直接看npm安装
+
+
+
+1.Vue Devtools
+
+> 浏览器扩展
+>
+> 安装Vue Devtools: https://github.com/vuejs/devtools#vue-devtools
+>
+> 教程：https://vueschool.io/lessons/using-vue-dev-tools-with-vuejs-3?friend=vuejs
+
+
+
+
+
+2.CDN
+
+学习可以直接用最新版本：
+
+```html
+<script src="https://unpkg.com/vue@next"></script>
+```
+
+
+
+3.直接下载相关文件
+
+unpkg: https://unpkg.com/browse/vue@3.2.36/dist/
+
+
+
+
+
+4.npm
+
+> ps. windows下需要node.js
+
+```bash
+#最新稳定版
+$ npm install vue@next
+```
+
+Vue 还提供了编写[单文件组件](https://v3.cn.vuejs.org/guide/single-file-component.html)的配套工具。如果你想使用单文件组件，那么你还需要安装 `@vue/compiler-sfc`：
+
+```bash
+$ npm install -D @vue/compiler-sfc
+```
+
+
+
+
+
+5.命令行工具（CLI）
+
+> ps.不建议新手使用
+
+大多数情况下，我们更倾向于使用 Vue CLI 来创建一个配置最小化的 webpack 构建版本。
+
+> Vue 提供了一个[官方的 CLI](https://cli.vuejs.org/zh/)，为单页面应用 (SPA) 快速搭建繁杂的脚手架。它为现代前端工作流提供了功能齐备的构建设置。只需要几分钟的时间就可以运行起来并带有热重载、保存时 lint 校验，以及生产环境可用的构建版本。更多详情可查阅 [Vue CLI 的文档](https://cli.vuejs.org/zh/)
+
+
+
+对于 Vue 3，你应该使用 `npm` 上可用的 Vue CLI v4.5 作为 `@vue/cli`。要升级，你应该需要全局重新安装最新版本的 `@vue/cli`：
+
+```bash
+yarn global add @vue/cli
+# 或
+npm install -g @vue/cli
+```
+
+
+
+然后在 Vue 项目中运行：
+
+```bash
+vue upgrade --next
+```
+
+
+
+
+
+6.Vite
+
+[Vite](https://cn.vitejs.dev/) 是一个 web 开发构建工具，由于其原生 ES 模块导入方式，可以实现闪电般的冷服务器启动。
+
+通过在终端中运行以下命令，可以使用 Vite 快速构建 Vue 项目。
+
+使用 npm：
+
+```bash
+# npm 6.x
+$ npm init vite@latest <project-name> --template vue
+
+# npm 7+，需要加上额外的双短横线
+$ npm init vite@latest <project-name> -- --template vue
+
+$ cd <project-name>
+$ npm install
+$ npm run dev
+```
+
+
+
+或者 yarn：
+
+```bash
+$ yarn create vite <project-name> --template vue
+$ cd <project-name>
+$ yarn
+$ yarn dev
+```
+
+
+
+或者 pnpm:
+
+```bash
+$ pnpm create vite <project-name> -- --template vue
+$ cd <project-name>
+$ pnpm install
+$ pnpm dev
+```
+
+
+
+
+
+
+
+### 基础使用
+
+> demo直接用网页版的：https://codepen.io/team/Vue/pen/KKpRVpx
+
+
+
+#### start demo
+
+> ```css
+> .demo {
+>   font-family: sans-serif;
+>   border: 1px solid #eee;
+>   border-radius: 2px;
+>   padding: 20px 30px;
+>   margin-top: 1em;
+>   margin-bottom: 40px;
+>   user-select: none;
+>   overflow-x: auto;
+> }
+> ```
+
+```html
+<div id="hello-vue" class="demo">
+  {{ message }}
+</div>
+```
+
+```js
+const HelloVueApp = {
+  data() {
+    return {
+      message: 'Hello Vue!!'
+    }
+  }
+}
+
+Vue.createApp(HelloVueApp).mount('#hello-vue')
+```
+
+
+
+
+
+#### 声明式渲染
+
+响应式：
+
+```html
+<div id="counter" class="demo">
+  Counter: {{ counter }}
+</div>
+```
+
+
+
+```js
+const Counter = {
+  data() {
+    return {
+      counter: 0
+    }
+  }, 
+  mounted() {
+    setInterval(() => {
+      this.counter++
+    }, 1000)
+  }
+}
+Vue.createApp(Counter).mount('#counter')
+```
+
+
+
+绑定元素的attribute:
+
+```html
+<div id="bind-attribute" class="demo">
+  <span v-bind:title="message">
+    鼠标悬停几秒钟查看此处动态绑定的提示信息！
+  </span>
+</div>
+```
+
+```js
+const AttributeBinding = {
+  data(){
+    return {
+      message: 'You loaded this page on ' + new Date().toLocaleString()
+    }
+  }
+}
+
+Vue.createApp(AttributeBinding).mount('#bind-attribute')
+```
+
+
+
+
+
+#### 处理用户输入
+
+**v-on事件监听器**
+
+```html
+<div id="event-handling">
+  <p>{{ message }}</p>
+  <button v-on:click="reverseMessage">反转 Message</button>
+</div>
+```
+
+```js
+const EventHandling = {
+  data() {
+    return {
+      message: 'Hello Vue.js!'
+    }
+  },
+  methods: {
+    reverseMessage() {
+      this.message = this.message
+        .split('')
+        .reverse()
+        .join('')
+    }
+  }
+}
+
+Vue.createApp(EventHandling).mount('#event-handling')
+```
+
+
+
+
+
+
+
+**v-model**
+
+它能轻松实现表单输入和应用状态之间的双向绑定
+
+```html
+<div id="two-way-binding">
+  <p>{{ message }}</p>
+  <input v-model="message" />
+</div>
+```
+
+```js
+const TwoWayBinding = {
+  data() {
+    return {
+      message: 'Hello Vue!'
+    }
+  }
+}
+
+Vue.createApp(TwoWayBinding).mount('#two-way-binding')
+```
+
+
+
+
+
+#### 条件和循环
+
+**条件**
+
+控制切换一个元素是否显示：
+
+```html
+<div id="conditional-rendering">
+  <span v-if="seen">现在你看到我了</span>
+</div>
+```
+
+
+
+```js
+const ConditionalRendering = {
+  data() {
+    return {
+      seen: true
+    }
+  }
+}
+
+Vue.createApp(ConditionalRendering).mount('#conditional-rendering')
+```
+
+
+
+这个例子演示了我们不仅可以把数据绑定到 DOM 文本或 attribute，还可以绑定到 DOM 的**结构**。此外，Vue 也提供一个强大的过渡效果系统，可以在 Vue 插入/更新/移除元素时自动应用[过渡效果](https://v3.cn.vuejs.org/guide/transitions-enterleave.html)。
+
+
+
+**循环**
+
+```html
+<div id="list-rendering">
+  <ol>
+    <li v-for="todo in todos">
+      {{ todo.text }}
+    </li>
+  </ol>
+</div>
+```
+
+```js
+const ListRendering = {
+  data() {
+    return {
+      todos: [
+        { text: 'Learn JavaScript' },
+        { text: 'Learn Vue' },
+        { text: 'Build something awesome' }
+      ]
+    }
+  }
+}
+
+Vue.createApp(ListRendering).mount('#list-rendering')
+```
+
+
+
+**组件化应用构建**
+
+组件系统是 Vue 的另一个重要概念，因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树：
+
+![image-20220606171213491](images\tc_3_140.png)
+
+在 Vue 中，组件本质上是一个具有预定义选项的实例。在 Vue 中注册组件很简单：如对 `app` 对象所做的那样创建一个组件对象，并将其定义在父级组件的 `components` 选项中
+
+```html
+<div id="todo-list-app">
+  <ol>
+     <!--
+      现在我们为每个 todo-item 提供 todo 对象
+      todo 对象是变量，即其内容可以是动态的。
+      我们也需要为每个组件提供一个“key”，稍后再
+      作详细解释。
+    -->
+    <todo-item
+      v-for="item in groceryList"
+      v-bind:todo="item"
+      v-bind:key="item.id"
+    ></todo-item>
+  </ol>
+</div>
+```
+
+```js
+const TodoItem = {
+  props: ['todo'],
+  template: `<li>{{ todo.text }}</li>`
+}
+
+const TodoList = {
+  data() {
+    return {
+      groceryList: [
+        { id: 0, text: 'Vegetables' },
+        { id: 1, text: 'Cheese' },
+        { id: 2, text: 'Whatever else humans are supposed to eat' }
+      ]
+    }
+  },
+  components: {
+    TodoItem
+  }
+}
+
+const app = Vue.createApp(TodoList)
+
+app.mount('#todo-list-app')
+```
+
+
+
+输出：
+
+```text
+1.Vegetables
+2.Cheese
+3.Whatever else humans are supposed to eat
+```
+
+
+
+> Vue 也为创建和使用自定义元素提供了很好的支持。关于其更多细节，请浏览 [Vue 和 Web Components](https://v3.cn.vuejs.org/guide/web-components.html) 章节。
+
+
+
+
+
+
+
+
+
+### 应用&组件实例
+
+每个 Vue 应用都是通过用 `createApp` 函数创建一个新的**应用实例**开始的：
+
+```js
+const app = Vue.createApp({
+  /* 选项 */
+})
+```
+
+
+
+该应用实例是用来在应用中注册“全局”组件的
+
+```js
+const app = Vue.createApp({})
+app.component('SearchInput', SearchInputComponent)
+app.directive('focus', FocusDirective)
+app.use(LocalePlugin)
+```
+
+
+
+应用实例暴露的大多数方法都会返回该同一实例，允许链式：
+
+```js
+Vue.createApp({})
+  .component('SearchInput', SearchInputComponent)
+  .directive('focus', FocusDirective)
+  .use(LocalePlugin)
+```
+
+可以在 [API 参考](https://v3.cn.vuejs.org/api/application-api.html)中浏览完整的应用 API。
+
+
+
+**根组件**
+
+传递给 `createApp` 的选项用于配置**根组件**。当我们**挂载**应用时，该组件被用作渲染的起点。
+
+一个应用需要被挂载到一个 DOM 元素中。例如，如果你想把一个 Vue 应用挂载到 `<div id="app"></div>`，应该传入 `#app`：
+
+```js
+const RootComponent = { 
+  /* 选项 */ 
+}
+const app = Vue.createApp(RootComponent)
+const vm = app.mount('#app')
+```
+
+
+
+与大多数应用方法不同的是，`mount` 不返回应用本身。相反，它返回的是根组件实例。
+
+
+
+
+
+**组件实例property**
+
+在前面的指南中，我们认识了 `data` property。在 `data` 中定义的 property 是通过组件实例暴露的：
+
+```js
+const app = Vue.createApp({
+  data() {
+    return { count: 4 }
+  }
+})
+
+const vm = app.mount('#app')
+
+console.log(vm.count) // => 4
+```
+
+
+
+还有各种其他的组件选项，可以将用户定义的 property 添加到组件实例中，例如 `methods`，`props`，`computed`，`inject` 和 `setup`。我们将在后面的指南中深入讨论它们。组件实例的所有 property，无论如何定义，都可以在组件的模板中访问。
+
+
+
+Vue 还通过组件实例暴露了一些内置 property，如 `$attrs` 和 `$emit`。这些 property 都有一个 `$` 前缀，以避免与用户定义的 property 名冲突。
+
+
+
+
+
+**生命周期钩子**
+
+每个组件在被创建时都要经过一系列的初始化过程——例如，需要设置数据监听、编译模板、将实例挂载到 DOM 并在数据变化时更新 DOM 等。同时在这个过程中也会运行一些叫做**生命周期钩子**的函数，这给了用户在不同阶段添加自己的代码的机会。
+
+比如 [created](https://v3.cn.vuejs.org/api/options-lifecycle-hooks.html#created) 钩子可以用来在一个实例被创建之后执行代码：
+
+```js
+Vue.createApp({
+  data() {
+    return { count: 1}
+  },
+  created() {
+    // `this` 指向 vm 实例
+    console.log('count is: ' + this.count) // => "count is: 1"
+  }
+})
+```
+
+也有一些其它的钩子，在实例生命周期的不同阶段被调用，如 [mounted](https://v3.cn.vuejs.org/api/options-lifecycle-hooks.html#mounted)、[updated](https://v3.cn.vuejs.org/api/options-lifecycle-hooks.html#updated) 和 [unmounted](https://v3.cn.vuejs.org/api/options-lifecycle-hooks.html#unmounted)。生命周期钩子的 `this` 上下文指向调用它的当前活动实例。
+
+
+
+> TIP
+>
+> 不要在选项 property 或回调上使用[箭头函数](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/Arrow_functions)，比如 `created: () => console.log(this.a)` 或 `vm.$watch('a', newValue => this.myMethod())`。因为箭头函数并没有 `this`，`this` 会作为变量一直向上级词法作用域查找，直至找到为止，经常导致 `Uncaught TypeError: Cannot read property of undefined` 或 `Uncaught TypeError: this.myMethod is not a function` 之类的错误。
+
+
+
+
+
+
+
+**生命周期**
+
+![实例的生命周期](images\tc_3_141.svg)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -8747,6 +9675,160 @@ TH - 3 单量： 60000+
 
 
 
+### 维护
+
+#### Baraches
+
+Github可在项目中点开branch维护
+
+GitLab可在Repository中选择Branches维护
+
+
+
+
+
+#### 服务器
+
+##### wms项目部署
+
+通常有以下步骤：
+
+* 下载打好的包
+* 停止app
+* 部署app
+* 启动app
+
+> 如果自己打包进去的话，手动部署app和启动app即可
+>
+> 注意：运行脚本时，最好用sudo，有的文件需要管理员权限！
+
+> ps.脚本可以参考develop.md文档，这里不写出来了
+
+
+
+
+
+> eg. 把wms拷贝到wms-uat部署：
+>
+> ```bash
+> #前提：在wms中部署好了wms.zip
+> $ cd wms/upload/
+> $ cp wms.zip /home/userxxx/app/wms-uat/upload/
+> $ cd ../wms-uat/upload/
+> $ ls -al
+> $ rm wms-uat.zip
+> $ mv wms.zip wms-uat.zip
+> $ cd ../tomcat-deploy/
+> $ sudo ./app_delopy.sh wms-uat
+> $ sudo ./app_restart.sh wms-uat
+> ```
+>
+>   app_delopy.sh有指定bash，所以用./
+
+
+
+> ./------sh-----source的区别：
+>
+> Linux source命令：
+>
+> > 通常用法： source filepath 或 . filepath
+>
+> 它的功能：使当前shell读入路径为filepath的shell文件并依次执行文件中的所有语句，通常用于重新执行刚修改的初始化文件，使之立即生效，而不必注销并重新登录。例如，当我们修改了/etc/profile文件，并想让它立刻生效，而不用重新登录，就可以使用source命令，如source /etc/profile。
+>
+>  (没有权限可执行)
+>
+>  
+>
+> sh
+>
+> sh是一个shell， 运行 sh xxx.sh表示用sh来解释这个脚本
+>
+>  （ps.网上说sh也可以没有权限就可以执行，但是脚本里的命令，如果没有权限，也是会执行失败）
+>
+> 
+>
+> ./
+>
+> 使用这个命令需要先将文件提升为可执行的文件才能使用
+>
+> 如果运行 ```./xxx.sh``` 首先会查找脚本第一行是否指定了解析器，如果没指定，就用当前系统默认的shell
+
+
+
+
+
+
+
+
+
+**查看服务器配置**
+
+可在app/wms/conf/default下查看 （application.yml）
+
+
+
+##### 手动打包
+
+在项目下，build完后，找到相应的模块的build下的jar包，比如wms-rf-api--------- build ------- libs下的wms-rf-api-XXX.jar
+
+然后用xftp,打开服务器，找到项目的webapps---default---ROOT---WEB-INF---lib下，复制到该目录下，覆盖，然后再执行drestart命令
+
+ps.不用执行deploy---因为会重新拉包覆盖掉新加进去的jar包
+
+```bash
+./app_restart.sh wms-uat
+```
+
+
+
+如果只是更改js文件，则在webapps---default---ROOT---WEB-INF---classess---static下，找到对应的js文件，覆盖掉，然后在浏览器刷新缓存即可。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Other
 
 ### IDEA
@@ -8837,3 +9919,130 @@ TH - 3 单量： 60000+
    ---
 
    
+
+
+
+
+
+### 正则
+
+| 定位符 | 含义                                     |
+| ------ | ---------------------------------------- |
+| ^      | 匹配行首，"^hello" 匹配以hello开头的行 " |
+| $      | 匹配行尾，"hello$" 匹配以hello结尾的行 " |
+
+
+
+| 匹配符 | 含义                         |
+| ------ | ---------------------------- |
+| .      | 匹配除回车之外的任意字符     |
+| ()     | 查找组字符串                 |
+| []     | 匹配括号中的一个字符         |
+| [^]    | 否定括号中出现字符类中的字符 |
+| \      | 转义                         |
+
+
+
+| 限定符 | 说明                                         |
+| ------ | -------------------------------------------- |
+| *      | 表示该字符不出现或出现多次                   |
+| ?      | 表示该字符可以不出现或者出现一次             |
+| +      | 表示其前面字符出现一次或多次，但必须出现一次 |
+| {n,m}  | 表示该字符最少出现n次，最多出现m次           |
+| {m}    | 正好出现m次                                  |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 电脑
+
+#### 切换电池性能
+
+电池切换为高性能
+
+> 当电脑中的电池选项找不到高性能时：
+
+1. 打开cmd
+
+2. 用命令```powercfg/L``` 可以看到当前系统存在的电池方案，带星号为使用中
+
+3. 用命令 ```powercfg/ALIASES``` 可以看到系统内置的电池方案
+
+    其中， 
+
+    * `SCHEME_BALANCED`就是平衡
+    * `SCHEME_MAX`对应的就是节能方案
+    * `SCHEME_MIN`对应的就是高性能
+
+4. 选择高性能的方案： ```powercfg/S SCHEME_MIN```
+
+5. 这时再进入电源选项，就能看到高性能的选项了
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 加密
+
+#### MD5
+
+```groovy
+static String encryptWithMD5(String code) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5")
+        byte[] array = md.digest(code.getBytes())
+        StringBuffer sb = new StringBuffer()
+        for (int i = 0; i < array.length; ++i) {
+            sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100), 1, 3))
+            //sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3))
+        }
+        return sb.toString()
+    }
+```
+
+
+
+
+
+#### HMAC-SHA256加密
+
+```groovy
+import cn.hutool.core.codec.Base64
+
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
+import java.nio.charset.StandardCharsets
+
+/**
+ * HMAC-SHA256 加密
+ * @param data 参数
+ * @param key 原始秘钥
+ * @return
+ */
+static String hmacSHA256(String data, String key) throws Exception {
+    Mac sha256HMAC = Mac.getInstance("HmacSHA256")
+    SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256")
+    sha256HMAC.init(secretKey)
+    byte[] array = sha256HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8))
+    return Base64.encode(array).toUpperCase()
+}
+```
+
