@@ -776,7 +776,21 @@ RabbitMQ 如果丢失了数据，主要是因为你消费的时候，**刚消费
 
 
 
+#### 错误
 
+##### rabbitmqclt报错
+
+> Error: unable to perform an operation on node 'rabbit@LAPTOP-746MQJ8U'. Please see diagnostics information and suggestions below.
+
+
+
+解决方法：
+
+Copy the file .erlang.cookie manually from %SystemRoot% or %SystemRoot%\system32\config\systemprofile to %HOMEDRIVE%%HOMEPATH%.
+
+
+
+> 复制 C:\Windows\System32\config\systemprofile\erlang.cookie 到 C:\Users\kennedy\erlang.cookie
 
 
 
@@ -5762,6 +5776,80 @@ String run(String url) throws IOException {
 
 
 
+### 控件
+
+#### 控件参数
+
+* android:gravity 控件位置，左对齐left，右对齐right，居中center_vertical
+* android:lineSpacingMultiplier  表示行间距的倍数 ，比如1,1.2
+
+
+
+```xml
+<TextView
+          android:id="@+id/field_1"
+          android:layout_width="0px"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_vertical"
+          android:layout_weight="3"
+          android:gravity="left|center_vertical"
+          android:lineSpacingMultiplier="1"
+          android:minHeight="45px"
+          android:textSize="18px" />
+```
+
+
+
+EditText控件：
+
+* android:inputType="textMultiLine" ： 多行输入
+
+```xml
+<com.zhy.autolayout.AutoLinearLayout
+                                     android:layout_width="match_parent"
+                                     android:layout_height="wrap_content"
+                                     android:layout_marginLeft="32px"
+                                     android:layout_marginRight="32px"
+                                     android:background="@drawable/edit_input"
+                                     android:orientation="horizontal">
+    <TextView
+              android:layout_width="120px"
+              android:layout_height="wrap_content"
+              android:layout_centerVertical="true"
+              android:layout_gravity="center_vertical"
+              android:gravity="center_vertical|left"
+              android:minHeight="60px"
+              android:text="@string/remark"
+              android:textColor="#9193A2"
+              android:textSize="21px" />
+
+    <EditText
+              android:id="@+id/iqc_remark"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:inputType="textMultiLine"
+              android:background="@drawable/edit_input"/>
+</com.zhy.autolayout.AutoLinearLayout>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -8361,6 +8449,73 @@ dependencies {
 
 
 
+### Nexus配置
+
+Nexus配置账号密码：
+
+修改文件 init.gradle，替换 `<username>`和`<password>`为你的帐号和密码。
+
+init.gradle
+
+修改以下文件位置都可以（文件不存在请手动创建）：
+
+- `USER_HOME/.gradle/init.gradle`
+- `GRADLE_HOME/init.d/init.gradle`
+
+详情请参考[Gradle 文档](https://docs.gradle.org/current/userguide/init_scripts.html#sec:using_an_init_script)
+
+```gradle
+allprojects {
+    buildscript {
+        repositories {
+            mavenLocal()
+            maven {
+                credentials {
+                    username "<username>"
+                    password "<password>"
+                }
+                url "https://nexus.loghub.com/repository/public/"
+            }
+        }
+    }
+    repositories{
+        mavenLocal()
+        maven {
+            credentials {
+                username "<username>"
+                password "<password>"
+            }
+            url "https://nexus.loghub.com/repository/public/"
+        }
+    }
+}
+
+settingsEvaluated { settings ->
+    settings.pluginManagement {
+        repositories {
+            maven {
+                credentials {
+                    username "<username>"
+                    password "<password>"
+                }
+                url "https://nexus.loghub.com/repository/public/"
+            }
+        }
+    }
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -9792,6 +9947,19 @@ ps.不用执行deploy---因为会重新拉包覆盖掉新加进去的jar包
 
 
 
+
+
+
+
+
+
+
+## Nginx
+
+### 命令
+
+* nginx.exe -s reload  重新加载配置
+* nginx.exe -t 校验配置文件
 
 
 
